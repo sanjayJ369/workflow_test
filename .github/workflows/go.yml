@@ -1,0 +1,38 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Create new folder for binary files
+      run: |
+        mkdir -p binary-files
+
+    - name: build the binary files
+      run: |
+        env GOOS=windows GOARCH=amd64 go build -o "./binary-files/windows-amd64" ./main.go
+        env GOOS=linux GOARCH=amd64 go build -o "./binary-files/linux-amd64" ./main.go
+        env GOOS=linux GOARCH=arm go build -o "./binary-files/linux-arm" ./main.go
+
+    - name: Update repository with new binary files
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add .
+        git commit -m "Update client binary files"
+        git push origin main
